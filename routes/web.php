@@ -6,8 +6,36 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\Customer\CustomerController;
 use App\Http\Controllers\FaqsController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\Auth\SocialiteController;
 use App\Http\Controllers\SubCategoryController;
+use App\Mail\WelcomeMail;
+use App\Models\User;
+use App\Notifications\GeneralNotification;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
+
+// Test Email Route
+Route::get('/test-email', function () {
+    Mail::to('test@example.com')->send(new WelcomeMail('أحمد'));
+    return "Email sent! Check storage/logs/laravel.log since MAIL_MAILER is set to log.";
+});
+
+// Test Notification Route
+Route::get('/test-notification', function () {
+    $user = User::first() ?? User::factory()->create([
+        'name' => 'Test User',
+        'email' => 'test@example.com',
+        'password' => bcrypt('password'),
+    ]);
+
+    $user->notify(new GeneralNotification());
+
+    return "Notification sent to " . $user->email . ". Check database or logs.";
+});
+
+// Socialite Routes
+Route::get('/auth/{provider}/redirect', [SocialiteController::class, 'redirect'])->name('socialite.redirect');
+Route::get('/auth/{provider}/callback', [SocialiteController::class, 'callback'])->name('socialite.callback');
 
 //System Pages
 Route::middleware(['auth', 'verified', 'throttle:5,1'])->group(function () {
